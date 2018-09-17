@@ -28,3 +28,5 @@ distance calculation
 6m0s - testing against 12 of 13 fields (not recommended, obviously)
 
 2m32s - testing against 1 of 13 fields (field that most correlates with group)
+
+1m54s - testing against 2~3 of 13 fields
