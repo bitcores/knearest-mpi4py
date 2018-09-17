@@ -88,7 +88,7 @@ total = 0
 # field list to test radius against. if the full list or no list is sent, radius wont be calculated
 #field_list = range(len(train_set[0][0][:]))
 # or provide a custom field list
-field_list = [1]
+field_list = [0,1]
 # WARNING ##################
 # calculating radius for many fields can cost time rather than save time
 # fields that most strongly correlate with the result/group should be used
