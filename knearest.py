@@ -17,19 +17,32 @@ def chunks(l, n):
         yield l[i:i + n]
 #########
 
-def k_nearest_neighbors(data, predict, k=5):
+def k_nearest_neighbors(data, predict, k=5, fields=[], radius=0.1, strength=1.0):
     if len(data) >= k:
         warnings.warn('K is set to a value less than total groups!')
     distances = []
     for group in data:
-        for features in data[group]:
-            euclid = np.linalg.norm(np.array(features) - np.array(predict))
-            distances.append([euclid, group])
+         for features in data[group]:
+            if len(fields) > 0 and len(fields) < len(features):
+                s = 0
+#               check if candidate test point is close to the predict point, if so calculate euclidian distance
+                for i in fields:
+                    if predict[i] >= (features[i] * (1 - radius)) and predict[i] <= (features[i] * (1 + radius)):
+                        s += 1
+                if float(s) / len(fields) >= strength:
+                    euclid = np.linalg.norm(np.array(features) - np.array(predict))
+                    distances.append([euclid, group])
+            else:
+                euclid = np.linalg.norm(np.array(features) - np.array(predict))
+                distances.append([euclid, group])
 
+    if len(distances) == 0:
+        return -1
+                                                                                                    
     votes = [i[1] for i in sorted(distances)[:k]]
     vote_result = Counter(votes).most_common(1)[0][0]
-#   confidence level of the vote
-#   confidence = Counter(votes).most_common(1)[0][1] / float(k)
+#    confidence level of the vote
+#    confidence = Counter(votes).most_common(1)[0][1] / float(k)
 
     return vote_result
 
@@ -39,8 +52,8 @@ if mpirank == 0:
 #   Dataset from http://archive.ics.uci.edu/ml/datasets/EEG+Eye+State
     df = pd.read_csv("EEG-Eye-State.data")
 #   no incomplete data we need to deal with, no id column
-#   df.replace('?', -99999, inplace=True)
-#   df.drop(['id'], 1, inplace=True)
+#    df.replace('?', -99999, inplace=True)
+#    df.drop(['id'], 1, inplace=True)
     full_data = df.astype(float).values.tolist()
     random.shuffle(full_data)
 
@@ -72,9 +85,19 @@ for i in test_scat:
 # run k_nearest_neighbors on the test data and count correct results
 correct = 0
 total = 0
+# field list to test radius against. if the full list or no list is sent, radius wont be calculated
+#field_list = range(len(train_set[0][0][:]))
+# or provide a custom field list
+field_list = [1]
+# WARNING ##################
+# calculating radius for many fields can cost time rather than save time
+# fields that most strongly correlate with the result/group should be used
+# in this dataset, from looking at the data the second field correlates strongly
+# which is why I am using a single field in this example
+############################
 for group in test_set:
     for data in test_set[group]:
-        vote = k_nearest_neighbors(train_set, data, k=5)
+        vote = k_nearest_neighbors(train_set, data, k=5, fields=field_list, radius=0.005, strength=1.0)
         if group == vote:
             correct += 1
         total += 1
