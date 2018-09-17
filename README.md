@@ -21,3 +21,10 @@ your dataset values
 
 "strength" is percentage of tested fields are within the radius for the data to be used in the 
 distance calculation
+
+![testresults](./knearopti.png)
+4m35s - no fields tested against
+
+6m0s - testing against 12 of 13 fields (not recommended, obviously)
+
+2m32s - testing against 1 of 13 fields (field that most correlates with group)
